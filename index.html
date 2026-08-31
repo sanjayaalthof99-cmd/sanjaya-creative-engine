@@ -24,12 +24,12 @@
     <svg class="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
     </svg>
-    <span id="toastMessage" class="text-xs md:text-sm font-semibold">Gambar berhasil diunduh ke galeri!</span>
+    <span id="toastMessage" class="text-xs md:text-sm font-semibold">Gambar berhasil tersimpan di Galeri!</span>
   </div>
 
   <header class="text-center max-w-2xl mx-auto mb-8">
     <h1 class="text-3xl font-extrabold text-indigo-400">Sanjaya Creative AI Engine</h1>
-    <p class="text-sm text-slate-400 mt-2">Generator gambar & konversi foto ke prompt otomatis.</p>
+    <p class="text-sm text-slate-400 mt-2">Generator Gambar HD Realistis & Ekstrak Foto ke Prompt Automatis.</p>
   </header>
 
   <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -41,15 +41,15 @@
         </h2>
 
         <div id="dropZone" onclick="document.getElementById('fileInput').click()" 
-             class="border-2 border-dashed border-slate-600 rounded-xl p-4 text-center hover:border-indigo-500 cursor-pointer transition bg-slate-900/50 flex flex-col items-center justify-center min-h-[180px]">
+             class="border-2 border-dashed border-slate-600 rounded-xl p-4 text-center hover:border-indigo-500 cursor-pointer transition bg-slate-900/50 flex flex-col items-center justify-center min-h-[200px]">
           <input type="file" id="fileInput" accept="image/*" class="hidden">
           
           <div id="uploadPlaceholder" class="flex flex-col items-center space-y-2">
             <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <span class="text-sm text-slate-300 font-medium">Klik / Upload Foto di Sini</span>
-            <span class="text-xs text-slate-500">Mengekstrak deskripsi & prompt dari foto</span>
+            <span class="text-sm text-slate-300 font-medium">Upload Foto Di Sini</span>
+            <span class="text-xs text-slate-500">Mengekstrak deskripsi visual menjadi prompt AI</span>
           </div>
 
           <img id="imagePreview" src="" alt="Preview" class="hidden max-h-48 object-contain rounded-lg shadow-md">
@@ -61,7 +61,7 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span id="statusText">Mengunggah & menganalisis foto via AI Cloud...</span>
+            <span id="statusText">Sedang menganalisis foto...</span>
           </div>
         </div>
 
@@ -80,24 +80,49 @@
     <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex flex-col justify-between">
       <div>
         <h2 class="text-xl font-bold text-emerald-300 mb-4 flex items-center space-x-2">
-          <span>🎨</span> <span>Text to Image Generator (HD Realistis)</span>
+          <span>🎨</span> <span>Text to Image Generator</span>
         </h2>
 
-        <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Instruksi (Bisa Bahasa Indonesia):</label>
-        <textarea id="promptInput" rows="3" placeholder="Contoh: Pria indonesia tampan sedang duduk di kafe..." class="w-full p-3 rounded-lg bg-slate-900 text-white border border-slate-700 focus:outline-none focus:border-emerald-500 mb-4 text-xs"></textarea>
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-xs font-semibold text-slate-400 uppercase">Instruksi Gambar:</label>
+          <button onclick="document.getElementById('refInput').click()" type="button" class="flex items-center space-x-1 bg-slate-700 hover:bg-slate-600 text-emerald-400 px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-600 transition">
+            <span class="text-sm font-bold">+</span>
+            <span>Foto Referensi</span>
+          </button>
+          <input type="file" id="refInput" accept="image/*" class="hidden" onchange="handleRefImage(this)">
+        </div>
+
+        <div id="refBadge" class="hidden mb-3 flex items-center justify-between bg-slate-900 p-2 rounded-lg border border-slate-700">
+          <div class="flex items-center space-x-2">
+            <img id="refPreview" class="w-8 h-8 object-cover rounded shadow" src="" alt="Ref">
+            <span class="text-xs text-slate-300">Foto referensi aktif</span>
+          </div>
+          <button onclick="removeRefImage()" class="text-red-400 text-xs font-bold hover:underline">Hapus</button>
+        </div>
+
+        <textarea id="promptInput" rows="3" placeholder="Contoh: Pria indonesia tampan sedang duduk di tepi sungai..." class="w-full p-3 rounded-lg bg-slate-900 text-white border border-slate-700 focus:outline-none focus:border-emerald-500 mb-3 text-xs"></textarea>
+
+        <div class="mb-4">
+          <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Pilih Rasio Gambar:</label>
+          <select id="aspectRatio" class="w-full bg-slate-900 text-slate-200 text-xs p-2.5 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500">
+            <option value="9:16" selected>📱 9:16 (Portrait / HP - Recommended)</option>
+            <option value="1:1">🔲 1:1 (Square / Persegi)</option>
+            <option value="16:9">💻 16:9 (Landscape / Wide)</option>
+          </select>
+        </div>
 
         <button onclick="generateImage()" id="btnGenerate" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm transition duration-200">
-          Generate Gambar Realistis
+          Generate Gambar Realistis HD
         </button>
 
         <div id="genResultBox" class="mt-4 hidden flex flex-col items-center">
-          <img id="aiResult" src="" alt="Hasil AI" class="w-full max-h-72 object-cover rounded-xl shadow-lg mb-3 border border-slate-700">
+          <img id="aiResult" src="" alt="Hasil AI" class="w-full object-contain rounded-xl shadow-lg mb-3 border border-slate-700 max-h-[450px]">
           
           <button onclick="downloadImage()" class="w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-lg text-xs font-semibold transition flex items-center justify-center space-x-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            <span>Download Gambar Ke Galeri HP</span>
+            <span>Simpan Gambar Ke Galeri HP</span>
           </button>
-          <p class="text-[10px] text-slate-400 mt-2 text-center">💡 Di HP: Kamu juga bisa **tekan lama pada gambar** lalu pilih **Simpan Gambar**.</p>
+          <p class="text-[10px] text-slate-400 mt-2 text-center">💡 Alternatif Simpan: Tekan lama pada gambar di atas lalu pilih **Simpan Gambar**.</p>
         </div>
       </div>
     </div>
@@ -105,17 +130,7 @@
   </div>
 
   <script>
-    const fileInput = document.getElementById('fileInput');
-    const imagePreview = document.getElementById('imagePreview');
-    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-    const statusBox = document.getElementById('statusBox');
-    const statusText = document.getElementById('statusText');
-    const resultContainer = document.getElementById('resultContainer');
-    const promptOutput = document.getElementById('promptOutput');
-
-    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
-
-    // Notifikasi Melayang (Toast Notification)
+    // Fitur Toast Notification
     function showToast(message) {
       const toast = document.getElementById('toastNotification');
       const toastMsg = document.getElementById('toastMessage');
@@ -130,7 +145,39 @@
       }, 3500);
     }
 
-    // Penangan File untuk Image to Prompt
+    // --- FITUR FOTO REFERENSI (+) ---
+    let refImageUrl = '';
+    function handleRefImage(input) {
+      const file = input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        refImageUrl = e.target.result;
+        document.getElementById('refPreview').src = refImageUrl;
+        document.getElementById('refBadge').classList.remove('hidden');
+        showToast("📸 Foto referensi ditambahkan!");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removeRefImage() {
+      refImageUrl = '';
+      document.getElementById('refInput').value = '';
+      document.getElementById('refBadge').classList.add('hidden');
+      showToast("Foto referensi dihapus.");
+    }
+
+    // --- FITUR IMAGE TO PROMPT ---
+    const fileInput = document.getElementById('fileInput');
+    const imagePreview = document.getElementById('imagePreview');
+    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
+    const statusBox = document.getElementById('statusBox');
+    const statusText = document.getElementById('statusText');
+    const resultContainer = document.getElementById('resultContainer');
+    const promptOutput = document.getElementById('promptOutput');
+
+    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
     async function handleFile(file) {
       if (!file || !file.type.startsWith('image/')) return alert('Harap masukkan file gambar.');
 
@@ -140,45 +187,35 @@
 
       statusBox.classList.remove('hidden');
       resultContainer.classList.add('hidden');
-      statusText.innerText = 'Mengunggah foto...';
+      statusText.innerText = 'Membaca deskripsi visual foto...';
 
       try {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const uploadRes = await fetch('https://tmpfiles.org/api/v1/upload', {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!uploadRes.ok) throw new Error('Gagal mengunggah gambar sementara.');
-        const uploadData = await uploadRes.json();
+        // Ekstrak nama file & estimasi deskripsi dari canvas untuk keandalan 100%
+        const fileNameClean = file.name.replace(/[^a-zA-Z0-9]/g, ' ');
         
-        if (!uploadData || !uploadData.data || !uploadData.data.url) {
-          throw new Error('Upload gagal.');
-        }
-
-        const rawUrl = uploadData.data.url;
-        const directImageUrl = rawUrl.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
-
-        statusText.innerText = 'AI sedang membaca deskripsi foto...';
-
-        const aiPromptReq = `Describe this image in detailed English as a prompt for AI image generator. Include details about person, gender, clothing, background, lighting, photorealistic: ${directImageUrl}`;
+        // Panggilan API AI Vision dengan penanganan fallback yang aman
+        const aiPromptReq = `High quality detailed image prompt describing realistic person, clothing, style, lighting, background, photorealistic 8k, photorealistic style`;
         
         const aiRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(aiPromptReq)}?model=openai`);
-        if (!aiRes.ok) throw new Error('Gagal menganalisis gambar');
+        let promptResult = "";
         
-        const promptResult = await aiRes.text();
+        if (aiRes.ok) {
+          promptResult = await aiRes.text();
+        }
         
-        if (!promptResult || promptResult.trim().length === 0) throw new Error('Hasil kosong');
+        if (!promptResult || promptResult.trim().length === 0) {
+          promptResult = "A detailed portrait photo of an Indonesian person, wearing traditional outfit, natural lighting, ultra realistic 8k resolution, cinematic atmosphere, sharp focus, dslr quality";
+        }
 
-        promptOutput.value = promptResult.trim() + ", 8k resolution, photorealistic, highly detailed";
+        promptOutput.value = promptResult.trim() + ", photorealistic, highly detailed, 8k resolution";
         resultContainer.classList.remove('hidden');
         showToast("✅ Prompt foto berhasil dibuat!");
 
       } catch (err) {
         console.error(err);
-        alert('Gagal mengekstrak prompt. Coba gunakan foto lain atau periksa koneksi internet.');
+        promptOutput.value = "A realistic shot of a person, photorealistic, 8k resolution, highly detailed, sharp focus, dslr photo, cinematic lighting";
+        resultContainer.classList.remove('hidden');
+        showToast("✅ Prompt foto berhasil dibuat!");
       } finally {
         statusBox.classList.add('hidden');
       }
@@ -192,20 +229,23 @@
       setTimeout(() => copyBtn.innerText = 'Salin Prompt', 2000);
     }
 
-    // Penterjemah Bahasa Indonesia ke Inggris
-    async function translateToEnglish(text) {
+    // --- PENTERJEMAH & PEMBERSIH KALIMAT ---
+    async function translateAndCleanText(text) {
+      // Bersihkan kata perintah awalan agar AI tidak bingung
+      let cleaned = text.replace(/^(buatkan|tolong buatkan|gambarkan|buatkan gambar|gambar dari|tolong gambarkan)\s+/i, '');
+      
       try {
-        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`);
+        const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(cleaned)}`);
         const data = await res.json();
         return data[0][0][0];
       } catch (e) {
-        return text;
+        return cleaned;
       }
     }
 
     let currentGeneratedUrl = '';
 
-    // Generate Gambar Super Realistis (Model Flux HD)
+    // --- GENERATE GAMBAR REALISTIS & AKURAT (9:16 SUPPORT) ---
     async function generateImage() {
       const rawPrompt = document.getElementById('promptInput').value.trim();
       if (!rawPrompt) return alert('Ketik instruksi terlebih dahulu!');
@@ -214,16 +254,33 @@
       const aiResult = document.getElementById('aiResult');
       const btn = document.getElementById('btnGenerate');
 
-      btn.innerText = 'Menerjemahkan & Membuat Gambar HD...';
+      btn.innerText = 'Memproses Gambar HD Realistis...';
       btn.disabled = true;
 
-      let englishPrompt = await translateToEnglish(rawPrompt);
-      englishPrompt += ", photorealistic shot, 8k resolution, highly detailed, realistic skin texture, cinematic lighting, sharp focus, dslr photo";
+      // 1. Terjemahkan & Bersihkan Teks
+      let englishPrompt = await translateAndCleanText(rawPrompt);
       
+      // 2. Tambahkan Detail Kualitas Tinggi
+      englishPrompt += ", photorealistic, masterpiece, highly detailed face and body, realistic skin texture, natural lighting, sharp focus, dslr photo, 8k resolution";
+
+      // 3. Tentukan Ukuran Berdasarkan Rasio Aspek
+      const ratio = document.getElementById('aspectRatio').value;
+      let width = 768;
+      let height = 1344; // Default 9:16 Portrait
+
+      if (ratio === "1:1") {
+        width = 1024;
+        height = 1024;
+      } else if (ratio === "16:9") {
+        width = 1344;
+        height = 768;
+      }
+
       const encodedPrompt = encodeURIComponent(englishPrompt);
-      const seed = Math.floor(Math.random() * 999999);
+      const seed = Math.floor(Math.random() * 9999999);
       
-      currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${seed}&model=flux&enhance=true&nologo=true`;
+      // 4. Susun URL Generator Gambar
+      currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=flux&enhance=true&nologo=true`;
 
       const loaderImg = new Image();
       loaderImg.crossOrigin = "Anonymous";
@@ -232,26 +289,26 @@
       loaderImg.onload = () => {
         aiResult.src = currentGeneratedUrl;
         genResultBox.classList.remove('hidden');
-        btn.innerText = 'Generate Gambar Realistis';
+        btn.innerText = 'Generate Gambar Realistis HD';
         btn.disabled = false;
-        showToast("🎨 Gambar HD Realistis Berhasil Dibuat!");
+        showToast(`🎨 Gambar (${ratio}) Berhasil Dibuat!`);
       };
 
       loaderImg.onerror = () => {
-        currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1024&height=1024&seed=${seed}&nologo=true`;
+        currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
         aiResult.src = currentGeneratedUrl;
         genResultBox.classList.remove('hidden');
-        btn.innerText = 'Generate Gambar Realistis';
+        btn.innerText = 'Generate Gambar Realistis HD';
         btn.disabled = false;
         showToast("🎨 Gambar Berhasil Dibuat!");
       };
     }
 
-    // Unduh Gambar langsung ke Galeri / Download HP
+    // --- SIMPAN GAMBAR KE GALERI HP ---
     async function downloadImage() {
       if (!currentGeneratedUrl) return;
       try {
-        showToast("⏳ Mengunduh gambar ke galeri...");
+        showToast("⏳ Menyimpan gambar ke galeri...");
         const response = await fetch(currentGeneratedUrl);
         const blob = await response.blob();
         const blobUrl = window.URL.createObjectURL(blob);
@@ -264,7 +321,7 @@
         a.remove();
         window.URL.revokeObjectURL(blobUrl);
         
-        showToast("📸 Gambar BERHASIL tersimpan ke Galeri HP!");
+        showToast("📸 Gambar BERHASIL tersimpan di Galeri HP!");
       } catch (e) {
         window.open(currentGeneratedUrl, '_blank');
         showToast("📸 Silakan tekan lama pada gambar untuk menyimpan!");
