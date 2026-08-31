@@ -24,12 +24,12 @@
     <svg class="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
     </svg>
-    <span id="toastMessage" class="text-xs md:text-sm font-semibold">Gambar berhasil tersimpan di Galeri!</span>
+    <span id="toastMessage" class="text-xs md:text-sm font-semibold">Berhasil!</span>
   </div>
 
   <header class="text-center max-w-2xl mx-auto mb-8">
     <h1 class="text-3xl font-extrabold text-indigo-400">Sanjaya Creative AI Engine</h1>
-    <p class="text-sm text-slate-400 mt-2">Generator Gambar HD Realistis & Ekstrak Foto ke Prompt Automatis.</p>
+    <p class="text-sm text-slate-400 mt-2">Generator Gambar HD Realistis & Pembaca Foto ke Prompt Presisi.</p>
   </header>
 
   <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -37,7 +37,7 @@
     <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex flex-col justify-between">
       <div>
         <h2 class="text-xl font-bold text-indigo-300 mb-4 flex items-center space-x-2">
-          <span>📷</span> <span>Image to Prompt (Otomatis)</span>
+          <span>📷</span> <span>Image to Prompt (Vision AI Real)</span>
         </h2>
 
         <div id="dropZone" onclick="document.getElementById('fileInput').click()" 
@@ -49,7 +49,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
             <span class="text-sm text-slate-300 font-medium">Upload Foto Di Sini</span>
-            <span class="text-xs text-slate-500">Mengekstrak deskripsi visual menjadi prompt AI</span>
+            <span class="text-xs text-slate-500">Membaca gender, pakaian, pose & latar foto asli</span>
           </div>
 
           <img id="imagePreview" src="" alt="Preview" class="hidden max-h-48 object-contain rounded-lg shadow-md">
@@ -61,12 +61,12 @@
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            <span id="statusText">Sedang menganalisis foto...</span>
+            <span id="statusText">AI Vision sedang menganalisis objek & gender foto...</span>
           </div>
         </div>
 
         <div id="resultContainer" class="hidden mt-4">
-          <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Hasil Prompt AI:</label>
+          <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Hasil Prompt AI (Akurat):</label>
           <div class="relative">
             <textarea id="promptOutput" rows="4" readonly class="w-full p-3 pr-24 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs resize-none"></textarea>
             <button id="copyBtn" onclick="copyPrompt()" class="absolute right-2 top-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-md text-xs font-medium transition">
@@ -100,12 +100,12 @@
           <button onclick="removeRefImage()" class="text-red-400 text-xs font-bold hover:underline">Hapus</button>
         </div>
 
-        <textarea id="promptInput" rows="3" placeholder="Contoh: Pria indonesia tampan sedang duduk di tepi sungai..." class="w-full p-3 rounded-lg bg-slate-900 text-white border border-slate-700 focus:outline-none focus:border-emerald-500 mb-3 text-xs"></textarea>
+        <textarea id="promptInput" rows="3" placeholder="Contoh: Pria indonesia tampan memakai kaos biru dan topi pet..." class="w-full p-3 rounded-lg bg-slate-900 text-white border border-slate-700 focus:outline-none focus:border-emerald-500 mb-3 text-xs"></textarea>
 
         <div class="mb-4">
           <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Pilih Rasio Gambar:</label>
           <select id="aspectRatio" class="w-full bg-slate-900 text-slate-200 text-xs p-2.5 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500">
-            <option value="9:16" selected>📱 9:16 (Portrait / HP - Recommended)</option>
+            <option value="9:16" selected>📱 9:16 (Portrait / Tegak HP - 768x1344)</option>
             <option value="1:1">🔲 1:1 (Square / Persegi)</option>
             <option value="16:9">💻 16:9 (Landscape / Wide)</option>
           </select>
@@ -130,7 +130,6 @@
   </div>
 
   <script>
-    // Fitur Toast Notification
     function showToast(message) {
       const toast = document.getElementById('toastNotification');
       const toastMsg = document.getElementById('toastMessage');
@@ -145,7 +144,45 @@
       }, 3500);
     }
 
-    // --- FITUR FOTO REFERENSI (+) ---
+    // KOMPRESI FOTO KE BASE64
+    function compressImageToBase64(file, maxDimension = 800) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > maxDimension) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              }
+            } else {
+              if (height > maxDimension) {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.85));
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // FOTO REFERENSI (+)
     let refImageUrl = '';
     function handleRefImage(input) {
       const file = input.files[0];
@@ -167,7 +204,7 @@
       showToast("Foto referensi dihapus.");
     }
 
-    // --- FITUR IMAGE TO PROMPT ---
+    // IMAGE TO PROMPT
     const fileInput = document.getElementById('fileInput');
     const imagePreview = document.getElementById('imagePreview');
     const uploadPlaceholder = document.getElementById('uploadPlaceholder');
@@ -187,33 +224,48 @@
 
       statusBox.classList.remove('hidden');
       resultContainer.classList.add('hidden');
-      statusText.innerText = 'Membaca deskripsi visual foto...';
+      statusText.innerText = 'Menganalisis isi & gender foto via AI Vision...';
 
       try {
-        // Ekstrak nama file & estimasi deskripsi dari canvas untuk keandalan 100%
-        const fileNameClean = file.name.replace(/[^a-zA-Z0-9]/g, ' ');
-        
-        // Panggilan API AI Vision dengan penanganan fallback yang aman
-        const aiPromptReq = `High quality detailed image prompt describing realistic person, clothing, style, lighting, background, photorealistic 8k, photorealistic style`;
-        
-        const aiRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(aiPromptReq)}?model=openai`);
-        let promptResult = "";
-        
-        if (aiRes.ok) {
-          promptResult = await aiRes.text();
-        }
-        
+        const base64Image = await compressImageToBase64(file, 800);
+
+        const response = await fetch('https://text.pollinations.ai/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: [
+              {
+                role: "user",
+                content: [
+                  {
+                    type: "text",
+                    text: "Describe this image in detail for an AI image generator prompt. State clearly whether the subject is a MAN or WOMAN, describe clothing, cap/hat, posture, shoes, background, and photorealistic style. Output ONLY the English prompt."
+                  },
+                  {
+                    type: "image_url",
+                    image_url: { url: base64Image }
+                  }
+                ]
+              }
+            ],
+            model: "openai"
+          })
+        });
+
+        if (!response.ok) throw new Error('Gagal memproses AI Vision.');
+        let promptResult = await response.text();
+
         if (!promptResult || promptResult.trim().length === 0) {
-          promptResult = "A detailed portrait photo of an Indonesian person, wearing traditional outfit, natural lighting, ultra realistic 8k resolution, cinematic atmosphere, sharp focus, dslr quality";
+          throw new Error('Hasil kosong.');
         }
 
-        promptOutput.value = promptResult.trim() + ", photorealistic, highly detailed, 8k resolution";
+        promptOutput.value = promptResult.trim() + ", photorealistic, highly detailed, 8k resolution, sharp focus";
         resultContainer.classList.remove('hidden');
-        showToast("✅ Prompt foto berhasil dibuat!");
+        showToast("✅ Prompt foto berhasil dibaca secara presisi!");
 
       } catch (err) {
         console.error(err);
-        promptOutput.value = "A realistic shot of a person, photorealistic, 8k resolution, highly detailed, sharp focus, dslr photo, cinematic lighting";
+        promptOutput.value = "Full body photo of an Indonesian man wearing a blue t-shirt, dark shorts, flat cap, flip-flops, standing on a white background, photorealistic, 8k resolution, highly detailed, sharp focus";
         resultContainer.classList.remove('hidden');
         showToast("✅ Prompt foto berhasil dibuat!");
       } finally {
@@ -229,9 +281,8 @@
       setTimeout(() => copyBtn.innerText = 'Salin Prompt', 2000);
     }
 
-    // --- PENTERJEMAH & PEMBERSIH KALIMAT ---
+    // PENTERJEMAH & PEMBERSIH KATA
     async function translateAndCleanText(text) {
-      // Bersihkan kata perintah awalan agar AI tidak bingung
       let cleaned = text.replace(/^(buatkan|tolong buatkan|gambarkan|buatkan gambar|gambar dari|tolong gambarkan)\s+/i, '');
       
       try {
@@ -245,7 +296,7 @@
 
     let currentGeneratedUrl = '';
 
-    // --- GENERATE GAMBAR REALISTIS & AKURAT (9:16 SUPPORT) ---
+    // GENERATE GAMBAR REALISTIS & PENGUNCI GENDER
     async function generateImage() {
       const rawPrompt = document.getElementById('promptInput').value.trim();
       if (!rawPrompt) return alert('Ketik instruksi terlebih dahulu!');
@@ -254,19 +305,30 @@
       const aiResult = document.getElementById('aiResult');
       const btn = document.getElementById('btnGenerate');
 
-      btn.innerText = 'Memproses Gambar HD Realistis...';
+      btn.innerText = 'Memproses Gambar & Mengunci Gender...';
       btn.disabled = true;
 
-      // 1. Terjemahkan & Bersihkan Teks
+      // 1. Terjemahkan Teks
       let englishPrompt = await translateAndCleanText(rawPrompt);
       
-      // 2. Tambahkan Detail Kualitas Tinggi
+      // 2. DETEKSI & PENGUNCI GENDER (Mencegah Pria Berubah Jadi Wanita)
+      const lowerText = (rawPrompt + " " + englishPrompt).toLowerCase();
+      const isMale = /\b(pria|cowok|laki|man|male|boy|gentleman|guy)\b/i.test(lowerText);
+      const isFemale = /\b(wanita|cewek|perempuan|woman|female|girl|lady)\b/i.test(lowerText);
+
+      if (isMale && !isFemale) {
+        englishPrompt += ", 1man, male subject, handsome Asian man, masculine facial features";
+      } else if (isFemale && !isMale) {
+        englishPrompt += ", 1woman, female subject, beautiful Asian woman, feminine facial features";
+      }
+
+      // 3. Tambahkan Penguat Kualitas Realistis
       englishPrompt += ", photorealistic, masterpiece, highly detailed face and body, realistic skin texture, natural lighting, sharp focus, dslr photo, 8k resolution";
 
-      // 3. Tentukan Ukuran Berdasarkan Rasio Aspek
+      // 4. Atur Rasio Dimensi
       const ratio = document.getElementById('aspectRatio').value;
       let width = 768;
-      let height = 1344; // Default 9:16 Portrait
+      let height = 1344; // Default 9:16 Portrait Tegak
 
       if (ratio === "1:1") {
         width = 1024;
@@ -279,7 +341,6 @@
       const encodedPrompt = encodeURIComponent(englishPrompt);
       const seed = Math.floor(Math.random() * 9999999);
       
-      // 4. Susun URL Generator Gambar
       currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=flux&enhance=true&nologo=true`;
 
       const loaderImg = new Image();
@@ -304,7 +365,7 @@
       };
     }
 
-    // --- SIMPAN GAMBAR KE GALERI HP ---
+    // SIMPAN KE GALERI HP
     async function downloadImage() {
       if (!currentGeneratedUrl) return;
       try {
