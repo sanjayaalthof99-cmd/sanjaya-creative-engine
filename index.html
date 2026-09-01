@@ -1,319 +1,465 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sanjaya Creative AI Engine - Gemini Powered</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    @keyframes toastIn { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-    @keyframes toastOut { from { transform: translate(-50%, 0); opacity: 1; } to { transform: translate(-50%, 100%); opacity: 0; } }
-    .toast-show { animation: toastIn 0.3s ease-out forwards; }
-    .toast-hide { animation: toastOut 0.3s ease-in forwards; }
-  </style>
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8 relative pb-24"> 
-
-  <!-- TOAST NOTIFICATION -->
-  <div id="toastNotification" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden bg-emerald-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-emerald-400">
-    <svg class="w-6 h-6 text-white shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-    <span id="toastMessage" class="text-xs md:text-sm font-semibold">Berhasil!</span>
-  </div> 
-
-  <header class="text-center max-w-2xl mx-auto mb-6">
-    <h1 class="text-3xl font-extrabold text-indigo-400">Sanjaya Creative AI Engine</h1>
-    <p class="text-xs text-slate-400 mt-1">Powered Official by <span class="text-blue-400 font-bold">Google Gemini 1.5 Flash Vision</span></p>
-  </header> 
-
-  <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8"> 
-
-    <!-- FITUR 1: IMAGE TO TEXT / PROMPT (GEMINI VISION) -->
-    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex flex-col justify-between">
-      <div>
-        <h2 class="text-xl font-bold text-indigo-300 mb-4 flex items-center space-x-2">
-          <span>📷</span> <span>Image to Prompt (Google Gemini Vision)</span>
-        </h2> 
-
-        <div id="dropZone" onclick="document.getElementById('fileInput').click()"
-             class="border-2 border-dashed border-slate-600 rounded-xl p-4 text-center hover:border-indigo-500 cursor-pointer transition bg-slate-900/50 flex flex-col items-center justify-center min-h-[200px]">
-          <input type="file" id="fileInput" accept="image/*" class="hidden"> 
-
-          <div id="uploadPlaceholder" class="flex flex-col items-center space-y-2">
-            <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-            </svg>
-            <span class="text-sm text-slate-300 font-medium">Upload Foto Di Sini</span>
-            <span class="text-xs text-slate-500">Foto terunggah langsung diproses otomatis menjadi prompt</span>
-          </div> 
-
-          <img id="imagePreview" src="" alt="Preview" class="hidden max-h-48 object-contain rounded-lg shadow-md">
-        </div> 
-
-        <div id="statusBox" class="hidden mt-4 text-center">
-          <div class="inline-flex items-center space-x-2 text-indigo-400 text-xs font-medium">
-            <svg class="animate-spin h-4 w-4 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <span id="statusText">Google Gemini sedang menganalisis foto Anda...</span>
-          </div>
-        </div> 
-
-        <div id="resultContainer" class="hidden mt-4">
-          <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Hasil Prompt Siap Pakai:</label>
-          <div class="relative">
-            <textarea id="promptOutput" rows="4" readonly class="w-full p-3 pr-24 rounded-lg bg-slate-900 border border-slate-700 text-white text-xs resize-none"></textarea>
-            <button id="copyBtn" onclick="copyPrompt()" class="absolute right-2 top-2 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-md text-xs font-medium transition">
-              Salin Prompt
-            </button>
-          </div>
-        </div>
-      </div>
-    </div> 
-
-    <!-- FITUR 2: TEXT TO IMAGE GENERATOR -->
-    <div class="bg-slate-800 p-6 rounded-2xl shadow-xl border border-slate-700 flex flex-col justify-between">
-      <div>
-        <h2 class="text-xl font-bold text-emerald-300 mb-4 flex items-center space-x-2">
-          <span>🎨</span> <span>Text to Image Generator</span>
-        </h2> 
-
-        <div class="flex items-center justify-between mb-2">
-          <label class="block text-xs font-semibold text-slate-400 uppercase">Instruksi Gambar:</label>
-        </div> 
-
-        <textarea id="promptInput" rows="3" placeholder="Contoh: Pria indonesia memakai kaos biru dan celana pendek warna hitam, foto candid dslr..." class="w-full p-3 rounded-lg bg-slate-900 text-white border border-slate-700 focus:outline-none focus:border-emerald-500 mb-3 text-xs"></textarea> 
-
-        <div class="mb-4">
-          <label class="block text-xs font-semibold text-slate-400 mb-1 uppercase">Pilih Rasio Gambar:</label>
-          <select id="aspectRatio" class="w-full bg-slate-900 text-slate-200 text-xs p-2.5 rounded-lg border border-slate-700 focus:outline-none focus:border-emerald-500">
-            <option value="9:16" selected>📱 9:16 (Portrait / Tegak HP)</option>
-            <option value="4:5">📸 4:5 (Feed IG / Portrait)</option>
-            <option value="1:1">🔲 1:1 (Square / Persegi)</option>
-            <option value="16:9">💻 16:9 (Landscape / Wide)</option>
-          </select>
-        </div> 
-
-        <button onclick="generateImage()" id="btnGenerate" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg text-sm transition duration-200">
-          Generate Gambar Realistis HD
-        </button> 
-
-        <div id="genResultBox" class="mt-4 hidden flex flex-col items-center">
-          <img id="aiResult" src="" alt="Hasil AI" class="w-full object-contain rounded-xl shadow-lg mb-3 border border-slate-700 max-h-[450px]"> 
-
-          <button onclick="downloadImage()" class="w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white py-2.5 rounded-lg text-xs font-semibold transition flex items-center justify-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-            <span>Simpan Gambar Ke Galeri HP</span>
-          </button>
-        </div>
-      </div>
-    </div> 
-
-  </div> 
-
-  <script>
-    const DEFAULT_GEMINI_API_KEY = "AQ.Ab8RN6JWDKx7zqlrZI1xbv6PFiDHqK6fwSLHyyrW9ECvaReiYA"; 
-
-    function getApiKey() {
-      return DEFAULT_GEMINI_API_KEY.trim().replace(/["'\s]/g, "");
-    } 
-
-    function showToast(message) {
-      const toast = document.getElementById('toastNotification');
-      const toastMsg = document.getElementById('toastMessage');
-      toastMsg.innerText = message;
-      toast.classList.remove('hidden', 'toast-hide');
-      toast.classList.add('toast-show'); 
-
-      setTimeout(() => {
-        toast.classList.remove('toast-show');
-        toast.classList.add('toast-hide');
-        setTimeout(() => toast.classList.add('hidden'), 300);
-      }, 3500);
-    } 
-
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    } 
-
-    const fileInput = document.getElementById('fileInput');
-    const imagePreview = document.getElementById('imagePreview');
-    const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-    const statusBox = document.getElementById('statusBox');
-    const statusText = document.getElementById('statusText');
-    const resultContainer = document.getElementById('resultContainer');
-    const promptOutput = document.getElementById('promptOutput'); 
-
-    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0])); 
-
-    async function handleFile(file) {
-      if (!file || !file.type.startsWith('image/')) return alert('Harap masukkan file gambar.'); 
-
-      const apiKey = getApiKey();
-      if (!apiKey) {
-        alert('API Key belum diisi!');
-        return;
-      } 
-
-      imagePreview.src = URL.createObjectURL(file);
-      imagePreview.classList.remove('hidden');
-      uploadPlaceholder.classList.add('hidden'); 
-
-      statusBox.classList.remove('hidden');
-      resultContainer.classList.add('hidden');
-      statusText.innerText = 'Google Gemini sedang menganalisis foto Anda...'; 
-
-      try {
-        const base64Data = await fileToBase64(file); 
-
-        let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                {
-                  text: "Analyze this image in detail for an ultra-realistic AI image prompt. Describe subject gender, clothing items with EXACT colors, posture, setting, camera style, and lighting. Output ONLY a single detailed English prompt starting with 'A realistic camera photo of...'"
-                },
-                {
-                  inline_data: {
-                    mime_type: file.type,
-                    data: base64Data
-                  }
-                }
-              ]
-            }]
-          })
-        }); 
-
-        let data = await response.json(); 
-
-        if (data.error) {
-          throw new Error(data.error.message || 'Respons API bermasalah');
-        } 
-
-        const generatedPrompt = data.candidates[0].content.parts[0].text;
-        promptOutput.value = generatedPrompt.trim();
-        resultContainer.classList.remove('hidden');
-        showToast("✅ Prompt berhasil dibuat otomatis!"); 
-
-      } catch (err) {
-        console.error(err);
-        alert('Gagal memproses via Gemini: ' + err.message);
-      } finally {
-        statusBox.classList.add('hidden');
-      }
-    } 
-
-    function copyPrompt() {
-      navigator.clipboard.writeText(promptOutput.value);
-      const copyBtn = document.getElementById('copyBtn');
-      copyBtn.innerText = 'Tersalin!';
-      showToast("📋 Prompt disalin!");
-      setTimeout(() => copyBtn.innerText = 'Salin Prompt', 2000);
-    } 
-
-    let currentGeneratedUrl = ''; 
-
-    async function generateImage() {
-      const rawPrompt = document.getElementById('promptInput').value.trim();
-      if (!rawPrompt) return alert('Ketik instruksi terlebih dahulu!'); 
-
-      const apiKey = getApiKey();
-      const genResultBox = document.getElementById('genResultBox');
-      const aiResult = document.getElementById('aiResult');
-      const btn = document.getElementById('btnGenerate'); 
-
-      btn.innerText = 'Memproses Prompt Realistis...';
-      btn.disabled = true; 
-
-      let finalEnglishPrompt = rawPrompt; 
-
-      if (apiKey) {
-        try {
-          const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: `Translate and refine this into a detailed English prompt for realistic camera photography output. Keep colors exact. Prompt: "${rawPrompt}". Output ONLY the final prompt text.`
-                }]
-              }]
-            })
-          });
-          const geminiData = await geminiRes.json();
-          if (geminiData.candidates && geminiData.candidates[0].content.parts[0].text) {
-            finalEnglishPrompt = geminiData.candidates[0].content.parts[0].text.trim();
-          }
-        } catch (e) {
-          console.warn('Menggunakan prompt asli');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Image & Prompt Studio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
         }
-      } 
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gradient-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            transition: all 0.3s ease;
+        }
+        .gradient-btn:hover {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -10px rgba(99, 102, 241, 0.5);
+        }
+        .tab-btn.active {
+            border-bottom: 2px solid #818cf8;
+            color: #818cf8;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 md:p-8">
 
-      btn.innerText = 'Mengarahkan Rendering HD...'; 
+    <!-- Header -->
+    <header class="max-w-5xl mx-auto w-full mb-8 text-center">
+        <h1 class="text-3xl md:text-5xl font-bold gradient-text mb-2">AI Image & Prompt Studio</h1>
+        <p class="text-slate-400 text-sm md:text-base">Generate gambar dari teks & ekstraksi prompt otomatis dari foto dengan Gemini AI</p>
+    </header>
 
-      const ratio = document.getElementById('aspectRatio').value;
-      let width = 768;
-      let height = 1344; 
+    <!-- Main Container -->
+    <main class="max-w-5xl mx-auto w-full glass-card rounded-2xl p-4 md:p-6 shadow-2xl flex-grow">
+        
+        <!-- Navigation Tabs -->
+        <div class="flex border-b border-slate-700/60 mb-6">
+            <button id="tab1-btn" onclick="switchTab('tab1')" class="tab-btn active px-6 py-3 text-slate-400 text-sm md:text-base flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Text to Image
+            </button>
+            <button id="tab2-btn" onclick="switchTab('tab2')" class="tab-btn px-6 py-3 text-slate-400 text-sm md:text-base flex items-center gap-2">
+                <i class="fa-solid fa-image"></i> Image to Prompt (Gemini)
+            </button>
+        </div>
 
-      if (ratio === "4:5") { width = 864; height = 1080; }
-      else if (ratio === "1:1") { width = 1024; height = 1024; }
-      else if (ratio === "16:9") { width = 1344; height = 768; } 
+        <!-- TAB 1: TEXT TO IMAGE -->
+        <div id="tab1" class="tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Inputs -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Prompt Gambar</label>
+                        <textarea id="txt-prompt" rows="4" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 text-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="Contoh: A futuristic cyberpunk city at night with neon lights, highly detailed, 8k resolution..."></textarea>
+                    </div>
 
-      const enhancedPrompt = `${finalEnglishPrompt}, realistic photography, candid photo, shot on 35mm lens, f/1.8 aperture, realistic skin texture, natural lighting, 8k resolution`;
-      const encodedPrompt = encodeURIComponent(enhancedPrompt);
-      const seed = Math.floor(Math.random() * 9999999); 
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Rasio Foto</label>
+                            <select id="img-ratio" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 text-slate-200 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="1024x1024">1:1 (Persegi)</option>
+                                <option value="1280x720">16:9 (Landscape)</option>
+                                <option value="720x1280">9:16 (Portrait)</option>
+                                <option value="1024x768">4:3 (Standar)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Gaya Visual</label>
+                            <select id="img-style" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 text-slate-200 text-sm focus:outline-none focus:border-indigo-500">
+                                <option value="">Default / Alami</option>
+                                <option value="photorealistic, 8k, cinematic lighting">Fotorealistis</option>
+                                <option value="anime style, vibrant colors, studio ghibli">Anime / Manga</option>
+                                <option value="digital art, concept art, trending on artstation">Digital Art</option>
+                                <option value="3d render, blender, unreal engine 5">3D Render</option>
+                                <option value="oil painting, impressionism, detailed brush strokes">Lukisan Minyak</option>
+                            </select>
+                        </div>
+                    </div>
 
-      currentGeneratedUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&model=flux&enhance=true&nologo=true`; 
+                    <button onclick="generateImage()" class="w-full gradient-btn text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paintbrush"></i> Buat Gambar
+                    </button>
+                </div>
 
-      const loaderImg = new Image();
-      loaderImg.crossOrigin = "Anonymous";
-      loaderImg.src = currentGeneratedUrl; 
+                <!-- Preview Result -->
+                <div class="flex flex-col items-center justify-center bg-slate-900/50 border border-slate-800 rounded-xl p-4 min-h-[320px]">
+                    <div id="img-placeholder" class="text-center text-slate-500">
+                        <i class="fa-regular fa-image text-5xl mb-3"></i>
+                        <p class="text-sm">Gambar hasil akan muncul di sini</p>
+                    </div>
 
-      loaderImg.onload = () => {
-        aiResult.src = currentGeneratedUrl;
-        genResultBox.classList.remove('hidden');
-        btn.innerText = 'Generate Gambar Realistis HD';
-        btn.disabled = false;
-        showToast(`🎨 Gambar (${ratio}) Berhasil Dibuat!`);
-      }; 
+                    <div id="img-loading" class="hidden flex-col items-center gap-3">
+                        <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p class="text-sm text-slate-400 animate-pulse">Sedang memproses gambar...</p>
+                    </div>
 
-      loaderImg.onerror = () => {
-        aiResult.src = currentGeneratedUrl;
-        genResultBox.classList.remove('hidden');
-        btn.innerText = 'Generate Gambar Realistis HD';
-        btn.disabled = false;
-        showToast("🎨 Gambar Berhasil Dibuat!");
-      };
-    } 
+                    <div id="img-result-container" class="hidden w-full flex-col items-center gap-4">
+                        <img id="img-result" src="" alt="AI Result" class="max-h-[400px] w-auto rounded-lg shadow-lg object-contain">
+                        <a id="btn-download" href="#" target="_blank" download="ai-generated.jpg" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors">
+                            <i class="fa-solid fa-download"></i> Unduh Gambar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    async function downloadImage() {
-      if (!currentGeneratedUrl) return;
-      try {
-        showToast("⏳ Menyimpan gambar...");
-        const response = await fetch(currentGeneratedUrl);
-        const blob = await response.blob();
-        const blobUrl = window.URL.createObjectURL(blob); 
+        <!-- TAB 2: IMAGE TO PROMPT (GEMINI) -->
+        <div id="tab2" class="tab-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Image Input & Settings -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Gemini API Key</label>
+                        <div class="relative">
+                            <input type="password" id="gemini-key" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 pr-10 text-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="Masukkan API Key (dimulai dengan AQ... / AIza...)">
+                            <button onclick="toggleKeyVisibility()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-200">
+                                <i id="key-eye-icon" class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-1">Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 underline">Google AI Studio</a>.</p>
+                    </div>
 
-        const a = document.createElement('a');
-        a.href = blobUrl;
-        a.download = `Sanjaya-AI-${Date.now()}.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(blobUrl); 
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Unggah Foto / Gambar</label>
+                        <div id="drop-zone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-slate-900/40 rounded-xl p-6 text-center cursor-pointer transition-colors" onclick="document.getElementById('input-file').click()">
+                            <input type="file" id="input-file" accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+                            <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-400 mb-2"></i>
+                            <p class="text-sm text-slate-300 font-medium">Klik atau seret foto ke sini</p>
+                            <p class="text-xs text-slate-500 mt-1">Format: JPG, PNG, WEBP (Maks 5MB)</p>
+                        </div>
+                    </div>
 
-        showToast("📸 Gambar BERHASIL tersimpan ke Galeri!");
-      } catch (e) {
-        window.open(currentGeneratedUrl, '_blank');
-      }
-    }
-  </script>
+                    <!-- Uploaded Image Preview -->
+                    <div id="upload-preview-card" class="hidden flex items-center gap-4 bg-slate-900/80 border border-slate-800 rounded-xl p-3">
+                        <img id="upload-preview-img" src="" class="w-16 h-16 object-cover rounded-lg">
+                        <div class="flex-grow overflow-hidden">
+                            <p id="upload-filename" class="text-sm font-medium text-slate-200 truncate"></p>
+                            <p id="upload-filesize" class="text-xs text-slate-400"></p>
+                        </div>
+                        <button onclick="clearUploadedImage()" class="text-slate-500 hover:text-red-400 p-2">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <button onclick="analyzeImageWithGemini()" class="w-full gradient-btn text-white py-3 px-6 rounded-xl font-semibold flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass-chart"></i> Ekstraksi Prompt dengan Gemini
+                    </button>
+                </div>
+
+                <!-- Prompt Result -->
+                <div class="flex flex-col justify-between bg-slate-900/50 border border-slate-800 rounded-xl p-4 min-h-[320px]">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Hasil Prompt AI</label>
+                        
+                        <div id="prompt-placeholder" class="text-center text-slate-500 py-16">
+                            <i class="fa-solid fa-file-invoice text-4xl mb-3"></i>
+                            <p class="text-sm">Prompt hasil ekstraksi foto akan muncul di sini</p>
+                        </div>
+
+                        <div id="prompt-loading" class="hidden flex-col items-center justify-center py-16 gap-3">
+                            <div class="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                            <p class="text-sm text-slate-400 animate-pulse">Gemini sedang menganalisis foto...</p>
+                        </div>
+
+                        <div id="prompt-result-box" class="hidden">
+                            <textarea id="prompt-output" rows="8" readonly class="w-full bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm focus:outline-none resize-none"></textarea>
+                        </div>
+                    </div>
+
+                    <div id="prompt-actions" class="hidden flex flex-wrap gap-2 mt-4">
+                        <button onclick="copyPromptText()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors">
+                            <i id="copy-icon" class="fa-regular fa-copy"></i> Salin Prompt
+                        </button>
+                        <button onclick="usePromptInTab1()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 px-4 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Gunakan di Text-to-Image
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-5xl mx-auto w-full mt-8 text-center text-xs text-slate-500">
+        &copy; 2026 AI Image & Prompt Studio. Powered by Gemini API & Pollinations AI.
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // State management
+        let selectedFile = null;
+
+        // Load saved API key from localStorage on startup
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                document.getElementById('gemini-key').value = savedKey;
+            }
+        });
+
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            document.getElementById(tabId).classList.remove('hidden');
+            if(tabId === 'tab1') document.getElementById('tab1-btn').classList.add('active');
+            if(tabId === 'tab2') document.getElementById('tab2-btn').classList.add('active');
+        }
+
+        // Toggle Password Visibility
+        function toggleKeyVisibility() {
+            const input = document.getElementById('gemini-key');
+            const icon = document.getElementById('key-eye-icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // TAB 1: Text to Image Generator
+        function generateImage() {
+            const prompt = document.getElementById('txt-prompt').value.trim();
+            const ratio = document.getElementById('img-ratio').value;
+            const style = document.getElementById('img-style').value;
+
+            if (!prompt) {
+                alert('Silakan masukkan prompt teks terlebih dahulu!');
+                return;
+            }
+
+            const [width, height] = ratio.split('x');
+            const fullPrompt = style ? `${prompt}, ${style}` : prompt;
+            const seed = Math.floor(Math.random() * 1000000);
+            
+            // Pollinations AI URL
+            const imageUrl = `https://pollinations.ai/p/${encodeURIComponent(fullPrompt)}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
+
+            // Elements UI
+            const placeholder = document.getElementById('img-placeholder');
+            const loading = document.getElementById('img-loading');
+            const resultContainer = document.getElementById('img-result-container');
+            const resultImg = document.getElementById('img-result');
+            const btnDownload = document.getElementById('btn-download');
+
+            placeholder.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+            loading.classList.remove('hidden');
+            loading.classList.add('flex');
+
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                resultImg.src = imageUrl;
+                btnDownload.href = imageUrl;
+                loading.classList.add('hidden');
+                loading.classList.remove('flex');
+                resultContainer.classList.remove('hidden');
+                resultContainer.classList.add('flex');
+            };
+            tempImg.onerror = () => {
+                loading.classList.add('hidden');
+                loading.classList.remove('flex');
+                placeholder.classList.remove('hidden');
+                alert('Gagal memuat gambar. Silakan coba lagi.');
+            };
+            tempImg.src = imageUrl;
+        }
+
+        // TAB 2: File Handling
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) processFile(file);
+        }
+
+        function processFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('File harus berupa gambar!');
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert('Ukuran file maksimal 5 MB!');
+                return;
+            }
+
+            selectedFile = file;
+
+            // Update UI preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('upload-preview-img').src = e.target.result;
+                document.getElementById('upload-filename').innerText = file.name;
+                document.getElementById('upload-filesize').innerText = (file.size / 1024).toFixed(1) + ' KB';
+                document.getElementById('upload-preview-card').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearUploadedImage() {
+            selectedFile = null;
+            document.getElementById('input-file').value = '';
+            document.getElementById('upload-preview-card').classList.add('hidden');
+        }
+
+        // Drag and Drop support
+        const dropZone = document.getElementById('drop-zone');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) processFile(files[0]);
+        });
+
+        // TAB 2: Image to Prompt via Gemini API
+        async function analyzeImageWithGemini() {
+            const apiKeyInput = document.getElementById('gemini-key').value.trim();
+
+            if (!apiKeyInput) {
+                alert('Silakan masukkan Gemini API Key terlebih dahulu!');
+                return;
+            }
+            if (!selectedFile) {
+                alert('Silakan unggah foto terlebih dahulu!');
+                return;
+            }
+
+            // Save key to local storage
+            localStorage.setItem('gemini_api_key', apiKeyInput);
+
+            // UI state
+            const placeholder = document.getElementById('prompt-placeholder');
+            const loading = document.getElementById('prompt-loading');
+            const resultBox = document.getElementById('prompt-result-box');
+            const outputTextarea = document.getElementById('prompt-output');
+            const actions = document.getElementById('prompt-actions');
+
+            placeholder.classList.add('hidden');
+            resultBox.classList.add('hidden');
+            actions.classList.add('hidden');
+            loading.classList.remove('hidden');
+            loading.classList.add('flex');
+
+            try {
+                // Convert file to Base64
+                const base64Data = await fileToBase64(selectedFile);
+                
+                // Native Gemini API endpoint
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKeyInput)}`;
+
+                const requestBody = {
+                    contents: [
+                        {
+                            parts: [
+                                {
+                                    text: "Analyze this image in detail and create a rich, descriptive prompt in English that can be used for AI image generation (Midjourney, Stable Diffusion, DALL-E). Output ONLY the raw prompt text, without quotes, explanations, or introductory titles."
+                                },
+                                {
+                                    inline_data: {
+                                        mime_type: selectedFile.type,
+                                        data: base64Data
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                };
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKeyInput
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    const errDetail = data.error?.message || `HTTP Error ${response.status}`;
+                    throw new Error(errDetail);
+                }
+
+                const generatedPrompt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!generatedPrompt) {
+                    throw new Error("Respon dari Gemini tidak berisi teks prompt.");
+                }
+
+                // Render result
+                outputTextarea.value = generatedPrompt.trim();
+                loading.classList.add('hidden');
+                loading.classList.remove('flex');
+                resultBox.classList.remove('hidden');
+                actions.classList.remove('hidden');
+
+            } catch (err) {
+                loading.classList.add('hidden');
+                loading.classList.remove('flex');
+                placeholder.classList.remove('hidden');
+                alert(`Gagal memproses via Gemini: ${err.message}`);
+            }
+        }
+
+        // Helper: File to Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result.split(',')[1];
+                    resolve(base64String);
+                };
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Copy Prompt Action
+        function copyPromptText() {
+            const text = document.getElementById('prompt-output').value;
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = document.getElementById('copy-icon');
+                icon.classList.replace('fa-copy', 'fa-check');
+                setTimeout(() => {
+                    icon.classList.replace('fa-check', 'fa-copy');
+                }, 2000);
+            });
+        }
+
+        // Transfer Prompt to Tab 1
+        function usePromptInTab1() {
+            const text = document.getElementById('prompt-output').value;
+            document.getElementById('txt-prompt').value = text;
+            switchTab('tab1');
+        }
+    </script>
 </body>
 </html>
