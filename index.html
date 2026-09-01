@@ -129,14 +129,14 @@
                 <!-- Image Input & Settings -->
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-1">Gemini API Key</label>
+                        <label class="block text-sm font-medium text-slate-300 mb-1">Gemini API Key (Aktif Otomatis)</label>
                         <div class="relative">
-                            <input type="password" id="gemini-key" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 pr-10 text-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="Masukkan API Key (dimulai dengan AQ... / AIza...)">
+                            <input type="password" id="gemini-key" class="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 pr-10 text-slate-200 text-sm focus:outline-none focus:border-indigo-500" placeholder="Kunci sudah terpasang otomatis">
                             <button onclick="toggleKeyVisibility()" class="absolute right-3 top-3 text-slate-400 hover:text-slate-200">
                                 <i id="key-eye-icon" class="fa-solid fa-eye"></i>
                             </button>
                         </div>
-                        <p class="text-xs text-slate-500 mt-1">Dapatkan API Key gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-indigo-400 underline">Google AI Studio</a>.</p>
+                        <p class="text-xs text-emerald-400 mt-1">✓ API Key publik aktif. Pengunjung dapat memakai atau mengganti dengan kunci sendiri.</p>
                     </div>
 
                     <div>
@@ -207,15 +207,15 @@
 
     <!-- JavaScript Application Logic -->
     <script>
-        // State management
+        // API KEY DEFAULT UNTUK UMUM
+        const DEFAULT_API_KEY = "AQ.Ab8RN6JYfR6fspaw-94ZGz7OfFg6UiuLxEp7pZWZ8_rRWmLBQQ";
+
         let selectedFile = null;
 
-        // Load saved API key from localStorage on startup
+        // Buka web langsung isi otomatis kunci API
         window.addEventListener('DOMContentLoaded', () => {
             const savedKey = localStorage.getItem('gemini_api_key');
-            if (savedKey) {
-                document.getElementById('gemini-key').value = savedKey;
-            }
+            document.getElementById('gemini-key').value = savedKey || DEFAULT_API_KEY;
         });
 
         // Tab Switcher
@@ -256,10 +256,8 @@
             const fullPrompt = style ? `${prompt}, ${style}` : prompt;
             const seed = Math.floor(Math.random() * 1000000);
             
-            // Pollinations AI URL
             const imageUrl = `https://pollinations.ai/p/${encodeURIComponent(fullPrompt)}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
 
-            // Elements UI
             const placeholder = document.getElementById('img-placeholder');
             const loading = document.getElementById('img-loading');
             const resultContainer = document.getElementById('img-result-container');
@@ -307,7 +305,6 @@
 
             selectedFile = file;
 
-            // Update UI preview
             const reader = new FileReader();
             reader.onload = (e) => {
                 document.getElementById('upload-preview-img').src = e.target.result;
@@ -324,7 +321,7 @@
             document.getElementById('upload-preview-card').classList.add('hidden');
         }
 
-        // Drag and Drop support
+        // Drag and Drop
         const dropZone = document.getElementById('drop-zone');
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
             dropZone.addEventListener(eventName, preventDefaults, false);
@@ -341,21 +338,15 @@
 
         // TAB 2: Image to Prompt via Gemini API
         async function analyzeImageWithGemini() {
-            const apiKeyInput = document.getElementById('gemini-key').value.trim();
+            const apiKeyInput = document.getElementById('gemini-key').value.trim() || DEFAULT_API_KEY;
 
-            if (!apiKeyInput) {
-                alert('Silakan masukkan Gemini API Key terlebih dahulu!');
-                return;
-            }
             if (!selectedFile) {
                 alert('Silakan unggah foto terlebih dahulu!');
                 return;
             }
 
-            // Save key to local storage
             localStorage.setItem('gemini_api_key', apiKeyInput);
 
-            // UI state
             const placeholder = document.getElementById('prompt-placeholder');
             const loading = document.getElementById('prompt-loading');
             const resultBox = document.getElementById('prompt-result-box');
@@ -369,10 +360,9 @@
             loading.classList.add('flex');
 
             try {
-                // Convert file to Base64
                 const base64Data = await fileToBase64(selectedFile);
                 
-                // Native Gemini API endpoint
+                // Endpoint resmi Gemini 1.5 Flash
                 const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${encodeURIComponent(apiKeyInput)}`;
 
                 const requestBody = {
@@ -414,7 +404,6 @@
                     throw new Error("Respon dari Gemini tidak berisi teks prompt.");
                 }
 
-                // Render result
                 outputTextarea.value = generatedPrompt.trim();
                 loading.classList.add('hidden');
                 loading.classList.remove('flex');
@@ -429,7 +418,6 @@
             }
         }
 
-        // Helper: File to Base64
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -442,7 +430,6 @@
             });
         }
 
-        // Copy Prompt Action
         function copyPromptText() {
             const text = document.getElementById('prompt-output').value;
             navigator.clipboard.writeText(text).then(() => {
@@ -454,7 +441,6 @@
             });
         }
 
-        // Transfer Prompt to Tab 1
         function usePromptInTab1() {
             const text = document.getElementById('prompt-output').value;
             document.getElementById('txt-prompt').value = text;
